@@ -15,6 +15,7 @@ use Bitbucket\API\Repositories;
 use Bitbucket\API\Repositories\Hooks;
 use Doctrine\ORM\EntityManager;
 use Nice\Router\UrlGeneratorInterface;
+use Psr\Log\LoggerInterface;
 use Terramar\Packages\Entity\Package;
 use Terramar\Packages\Entity\Remote;
 use Terramar\Packages\Helper\SyncAdapterInterface;
@@ -22,25 +23,32 @@ use Terramar\Packages\Helper\SyncAdapterInterface;
 class SyncAdapter implements SyncAdapterInterface
 {
     /**
-     * @var \Doctrine\ORM\EntityManager
+     * @var EntityManager
      */
     private $entityManager;
 
     /**
-     * @var \Nice\Router\UrlGeneratorInterface
+     * @var UrlGeneratorInterface
      */
     private $urlGenerator;
+
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
 
     /**
      * Constructor.
      *
      * @param EntityManager $entityManager
      * @param UrlGeneratorInterface $urlGenerator
+     * @param LoggerInterface $logger
      */
-    public function __construct(EntityManager $entityManager, UrlGeneratorInterface $urlGenerator)
+    public function __construct(EntityManager $entityManager, UrlGeneratorInterface $urlGenerator, LoggerInterface $logger)
     {
         $this->entityManager = $entityManager;
         $this->urlGenerator = $urlGenerator;
+        $this->logger = $logger;
     }
 
     /**
@@ -160,7 +168,9 @@ class SyncAdapter implements SyncAdapterInterface
      */
     private function getRemoteConfig(Remote $remote)
     {
-        return $this->entityManager->getRepository('Terramar\Packages\Plugin\Bitbucket\RemoteConfiguration')->findOneBy(['remote' => $remote]);
+        return $this->entityManager
+            ->getRepository('Terramar\Packages\Plugin\Bitbucket\RemoteConfiguration')
+            ->findOneBy(['remote' => $remote]);
     }
 
     /**
@@ -192,9 +202,7 @@ class SyncAdapter implements SyncAdapterInterface
     public function enableHook(Package $package)
     {
         $config = $this->getConfig($package);
-        if ($config->isEnabled()) {
-            return true;
-        }
+        $this->logger->info('Bitbucket/SyncAdapter::enableHook - Enabling hook...');
 
         try {
             $auth = $this->getAuth($package->getRemote());
@@ -221,12 +229,13 @@ class SyncAdapter implements SyncAdapterInterface
             if (!empty($hook['uuid'])) {
                 $package->setHookExternalId($hook['uuid']);
                 $config->setEnabled(true);
+                $this->logger->info('Bitbucket/SyncAdapter::enableHook - Hook enabled', ['hook_id' => $hook['uuid']]);
             }
 
             return true;
 
         } catch (\Exception $e) {
-            // TODO: Log the exception
+            $this->logger->error('An error occured while enabling Bitbucket hook', ['exception' => $e]);
             return false;
         }
     }
@@ -246,12 +255,10 @@ class SyncAdapter implements SyncAdapterInterface
     public function disableHook(Package $package)
     {
         $config = $this->getConfig($package);
-        if (!$config->isEnabled()) {
-            return true;
-        }
 
         try {
             if ($uuid = $package->getHookExternalId()) {
+                $this->logger->info('Bitbucket/SyncAdapter::disableHook - Disabling hook...');
                 $auth = $this->getAuth($package->getRemote());
                 $Hook = new Hooks();
                 $Hook->setCredentials($auth);
@@ -268,11 +275,12 @@ class SyncAdapter implements SyncAdapterInterface
 
             $package->setHookExternalId('');
             $config->setEnabled(false);
+            $this->logger->info('Bitbucket/SyncAdapter::disableHook - Hook disabled');
 
             return true;
 
         } catch (\Exception $e) {
-            // TODO: Log the exception
+            $this->logger->error('Bitbucket/SyncAdapter::disableHook - An error occured while disabling hook', ['exception' => $e]);
             $package->setHookExternalId('');
             $config->setEnabled(false);
 

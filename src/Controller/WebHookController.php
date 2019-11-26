@@ -9,9 +9,12 @@
 
 namespace Terramar\Packages\Controller;
 
+use Doctrine\ORM\EntityManager;
 use Nice\Application;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Terramar\Packages\Entity\Package;
 use Terramar\Packages\Event\PackageUpdateEvent;
 use Terramar\Packages\Events;
 use Terramar\Packages\Helper\ResqueHelper;
@@ -22,8 +25,9 @@ class WebHookController extends ContainerAwareController
     {
         ResqueHelper::autoConfigure($this->container);
 
-        /** @var \Doctrine\ORM\EntityManager $entityManager */
+        /** @var EntityManager $entityManager */
         $entityManager = $app->get('doctrine.orm.entity_manager');
+        /** @var Package $package */
         $package = $entityManager->getRepository('Terramar\Packages\Entity\Package')->findOneBy([
             'id'      => $id,
             'enabled' => true,
@@ -35,7 +39,7 @@ class WebHookController extends ContainerAwareController
         $receivedData = json_decode($request->getContent());
         $event = new PackageUpdateEvent($package, $receivedData);
 
-        /** @var \Symfony\Component\EventDispatcher\EventDispatcherInterface $dispatcher */
+        /** @var EventDispatcherInterface $dispatcher */
         $dispatcher = $app->get('event_dispatcher');
         $dispatcher->dispatch(Events::PACKAGE_UPDATE, $event);
 

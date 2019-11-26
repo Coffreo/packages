@@ -10,63 +10,77 @@
 namespace Terramar\Packages\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Terramar\Packages\ApiSerializableEntityTrait;
 
 /**
- * @ORM\Entity
+ * @ORM\Entity(repositoryClass="Terramar\Packages\Repository\PackageRepository")
  * @ORM\Table(name="packages")
  */
 class Package
 {
+    use ApiSerializableEntityTrait;
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      * @ORM\Column(name="id", type="integer")
+     * @Groups({"rest"})
      */
     private $id;
 
     /**
      * @ORM\Column(name="name", type="string")
+     * @Groups({"rest"})
      */
     private $name;
 
     /**
      * @ORM\Column(name="external_id", type="string")
+     * @Groups({"rest"})
      */
     private $externalId;
 
     /**
      * @ORM\Column(name="hook_external_id", type="string")
+     * @Groups({"rest"})
      */
     private $hookExternalId = '';
 
     /**
      * @ORM\Column(name="description", type="string")
+     * @Groups({"rest"})
      */
     private $description;
 
     /**
      * @ORM\Column(name="enabled", type="boolean")
+     * @Groups({"rest"})
      */
     private $enabled = false;
 
     /**
      * @ORM\Column(name="ssh_url", type="string")
+     * @Groups({"rest"})
      */
     private $sshUrl;
 
     /**
      * @ORM\Column(name="web_url", type="string")
+     * @Groups({"rest"})
      */
     private $webUrl;
 
     /**
      * @ORM\Column(name="fqn", type="string")
+     * @Groups({"rest"})
      */
     private $fqn;
 
     /**
      * @ORM\ManyToOne(targetEntity="Terramar\Packages\Entity\Remote")
      * @ORM\JoinColumn(name="configuration_id", referencedColumnName="id")
+     * @Groups({"rest"})
      */
     private $remote;
 

@@ -10,6 +10,7 @@
 namespace Terramar\Packages\Plugin\Bitbucket;
 
 use Doctrine\ORM\EntityManager;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Terramar\Packages\Event\RemoteEvent;
 use Terramar\Packages\Events;
@@ -27,15 +28,22 @@ class RemoteSubscriber implements EventSubscriberInterface
     private $entityManager;
 
     /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
      * Constructor.
      *
      * @param SyncAdapter $adapter
      * @param EntityManager $entityManager
+     * @param LoggerInterface $logger
      */
-    public function __construct(SyncAdapter $adapter, EntityManager $entityManager)
+    public function __construct(SyncAdapter $adapter, EntityManager $entityManager, LoggerInterface $logger)
     {
         $this->adapter = $adapter;
         $this->entityManager = $entityManager;
+        $this->logger= $logger;
     }
 
     /**
@@ -58,7 +66,13 @@ class RemoteSubscriber implements EventSubscriberInterface
             return;
         }
 
-        $packages = $this->entityManager->getRepository('Terramar\Packages\Entity\Package')
+        $this->logger->info('Bitbucket\RemoteSubscriber::onDisableRemote - Remote disabled, disabling related projects hooks...', [
+            'remote_id' => $remote->getId(),
+            'remote_name' => $remote->getName()
+        ]);
+
+        $packages = $this->entityManager
+            ->getRepository('Terramar\Packages\Entity\Package')
             ->findBy(['remote' => $remote]);
 
         foreach ($packages as $package) {

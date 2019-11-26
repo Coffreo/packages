@@ -13,6 +13,7 @@ use Doctrine\ORM\EntityManager;
 use Github\Client;
 use Github\HttpClient\Message\ResponseMediator;
 use Nice\Router\UrlGeneratorInterface;
+use Psr\Log\LoggerInterface;
 use Terramar\Packages\Entity\Package;
 use Terramar\Packages\Entity\Remote;
 use Terramar\Packages\Helper\SyncAdapterInterface;
@@ -20,25 +21,32 @@ use Terramar\Packages\Helper\SyncAdapterInterface;
 class SyncAdapter implements SyncAdapterInterface
 {
     /**
-     * @var \Doctrine\ORM\EntityManager
+     * @var EntityManager
      */
     private $entityManager;
 
     /**
-     * @var \Nice\Router\UrlGeneratorInterface
+     * @var UrlGeneratorInterface
      */
     private $urlGenerator;
+
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
 
     /**
      * Constructor.
      *
      * @param EntityManager $entityManager
      * @param UrlGeneratorInterface $urlGenerator
+     * @param LoggerInterface $logger
      */
-    public function __construct(EntityManager $entityManager, UrlGeneratorInterface $urlGenerator)
+    public function __construct(EntityManager $entityManager, UrlGeneratorInterface $urlGenerator, LoggerInterface $logger)
     {
         $this->entityManager = $entityManager;
         $this->urlGenerator = $urlGenerator;
+        $this->logger = $logger;
     }
 
     /**
@@ -132,11 +140,13 @@ class SyncAdapter implements SyncAdapterInterface
     /**
      * @param Remote $remote
      *
-     * @return RemoteConfiguration
+     * @return RemoteConfiguration|object
      */
     private function getRemoteConfig(Remote $remote)
     {
-        return $this->entityManager->getRepository('Terramar\Packages\Plugin\GitHub\RemoteConfiguration')->findOneBy(['remote' => $remote]);
+        return $this->entityManager
+            ->getRepository('Terramar\Packages\Plugin\GitHub\RemoteConfiguration')
+            ->findOneBy(['remote' => $remote]);
     }
 
     /**
@@ -166,9 +176,7 @@ class SyncAdapter implements SyncAdapterInterface
     public function enableHook(Package $package)
     {
         $config = $this->getConfig($package);
-        if ($config->isEnabled()) {
-            return true;
-        }
+        $this->logger->info('GitHub/SyncAdapter::enableHook - Enabling hook...');
 
         try {
             $client = $this->getClient($package->getRemote());
@@ -187,18 +195,26 @@ class SyncAdapter implements SyncAdapterInterface
 
             $package->setHookExternalId($hook['id']);
             $config->setEnabled(true);
+            $this->logger->info('GitHub/SyncAdapter::enableHook - Hook enabled', ['hook_id' => $hook['id']]);
 
             return true;
 
         } catch (\Exception $e) {
-            // TODO: Log the exception
+            $this->logger->error('GitHub/SyncAdapter::enableHook - An error occured while enabling hook', ['exception' => $e]);
             return false;
         }
     }
 
+    /**
+     * @param Package $package
+     *
+     * @return PackageConfiguration|null
+     */
     private function getConfig(Package $package)
     {
-        return $this->entityManager->getRepository('Terramar\Packages\Plugin\GitHub\PackageConfiguration')->findOneBy(['package' => $package]);
+        return $this->entityManager
+            ->getRepository('Terramar\Packages\Plugin\GitHub\PackageConfiguration')
+            ->findOneBy(['package' => $package]);
     }
 
     /**
@@ -211,12 +227,10 @@ class SyncAdapter implements SyncAdapterInterface
     public function disableHook(Package $package)
     {
         $config = $this->getConfig($package);
-        if (!$config->isEnabled()) {
-            return true;
-        }
 
         try {
             if ($package->getHookExternalId()) {
+                $this->logger->info('GitHub/SyncAdapter::disableHook - Disabling hook...');
                 $client = $this->getClient($package->getRemote());
                 $url = 'repos/' . $package->getFqn() . '/hooks/' . $package->getHookExternalId();
                 $client->getHttpClient()->delete($url);
@@ -224,11 +238,12 @@ class SyncAdapter implements SyncAdapterInterface
 
             $package->setHookExternalId('');
             $config->setEnabled(false);
+            $this->logger->info('GitHub/SyncAdapter::disableHook - Hook disabled');
 
             return true;
 
         } catch (\Exception $e) {
-            // TODO: Log the exception
+            $this->logger->error('GitHub/SyncAdapter::disableHook - An error occured while disabling hook', ['exception' => $e]);
             $package->setHookExternalId('');
             $config->setEnabled(false);
 

@@ -34,16 +34,15 @@ Switch to the project root directory and run `composer install`.
 
 ```bash
 cd packages
-composer install
+make install
 ```
 
 ### Edit configuration
 
-Copy `config.yml.dist` to `config.yml` and edit as appropriate.
+Configuration is stored in `config.yml`, use `config.yml.dist` for model
 
 ```bash
-cp config.yml.dist config.yml
-vi config.yml
+make configure
 ```
 
 ### Generate the database schema
@@ -51,7 +50,7 @@ vi config.yml
 Packages uses Doctrine ORM to auto-generate the database schema for your configured platform.
 
 ```bash
-bin/console orm:schema-tool:create
+make database
 ```
 
 Running the application
@@ -60,8 +59,13 @@ Running the application
 Start PHP's built-in webserver to run the Packages web application with minimal effort.
 
 ```bash
-# Visit http://localhost:8080 to see the landing page.
-php -S localhost:8080 -t web
+make start
+```
+
+or start PHP's built-in webserver with XDebug enabled:
+
+```bash
+make dev
 ```
 
 ### Start a Resque worker
@@ -69,7 +73,7 @@ php -S localhost:8080 -t web
 For fully-automatic integration with GitHub, GitLab, and your Satis repository, you must always have at least one Resque worker running. 
 
 ```bash
-bin/console resque:worker:start
+make worker
 ```
 
 > For more information on Resque workers, check [the dedicated section](http://docs.terramarlabs.com/packages/3.2/managing-packages/resque).

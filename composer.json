@@ -18,6 +18,8 @@
     "symfony/debug": "~2.7",
     "symfony/console": "~2.7",
     "symfony/process": "~2.7",
+    "symfony/property-access": "^4.3",
+    "symfony/serializer": "^2.8",
     "symfony/yaml": "~2.7",
     "composer/satis": "^1.0",
     "composer/composer": "1.4.3",
@@ -29,7 +31,8 @@
     "twbs/bootstrap": "3.3.7",
     "fortawesome/font-awesome": "^4.7",
     "components/jquery": "^3.2",
-    "gentle/bitbucket-api": "^1.1"
+    "gentle/bitbucket-api": "^1.1",
+    "monolog/monolog": "~1.11"
   },
   "config": {
     "platform": {

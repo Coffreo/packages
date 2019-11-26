@@ -28,7 +28,8 @@ class Plugin implements PluginInterface
     {
         $container->register('packages.plugin.gitlab.adapter', 'Terramar\Packages\Plugin\GitLab\SyncAdapter')
             ->addArgument(new Reference('doctrine.orm.entity_manager'))
-            ->addArgument(new Reference('router.url_generator'));
+            ->addArgument(new Reference('router.url_generator'))
+            ->addArgument(new Reference('logger.default'));
 
         $container->getDefinition('packages.helper.sync')
             ->addMethodCall('registerAdapter', [new Reference('packages.plugin.gitlab.adapter')]);
@@ -45,6 +46,10 @@ class Plugin implements PluginInterface
             ->addArgument(new Reference('doctrine.orm.entity_manager'))
             ->addTag('kernel.event_subscriber');
 
+        $container->register('packages.plugin.gitlab.api_controller', 'Terramar\Packages\Plugin\GitLab\ApiController')
+            ->addMethodCall('setEntityManager', [new Reference('doctrine.orm.entity_manager')])
+            ->addMethodCall('setLogger', [new Reference('logger.default')]);
+
         $container->getDefinition('packages.controller_manager')
             ->addMethodCall('registerController',
                 [Actions::REMOTE_NEW, 'Terramar\Packages\Plugin\GitLab\Controller::newAction'])
@@ -53,7 +58,11 @@ class Plugin implements PluginInterface
             ->addMethodCall('registerController',
                 [Actions::REMOTE_EDIT, 'Terramar\Packages\Plugin\GitLab\Controller::editAction'])
             ->addMethodCall('registerController',
-                [Actions::REMOTE_UPDATE, 'Terramar\Packages\Plugin\GitLab\Controller::updateAction']);
+                [Actions::REMOTE_UPDATE, 'Terramar\Packages\Plugin\GitLab\Controller::updateAction'])
+            ->addMethodCall('registerController',
+                [Actions::REMOTE_API_GET, 'packages.plugin.gitlab.api_controller:getAction'])
+            ->addMethodCall('registerController',
+                [Actions::REMOTE_API_UPDATE, 'packages.plugin.gitlab.api_controller:updateAction']);
     }
 
     /**

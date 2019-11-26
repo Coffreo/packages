@@ -50,4 +50,24 @@ final class Actions
      * This action is dispatched when a package is updated.
      */
     const PACKAGE_UPDATE = 'package.update';
+
+    /**
+     * This action is dispatched when getting a package data via api
+     */
+    const PACKAGE_API_GET = 'package.api.get';
+
+    /**
+     * This action is dispatched when updating a package data via api
+     */
+    const PACKAGE_API_UPDATE = 'package.api.update';
+
+    /**
+     * This action is dispatched when getting a remote data via api
+     */
+    const REMOTE_API_GET = 'remote.api.get';
+
+    /**
+     * This action is dispatched when updating a remote data via api
+     */
+    const REMOTE_API_UPDATE = 'remote.api.update';
 }

@@ -11,11 +11,13 @@ namespace Terramar\Packages;
 
 use Nice\Application as BaseApplication;
 use Nice\Extension\DoctrineOrmExtension;
+use Nice\Extension\LogExtension;
 use Nice\Extension\SecurityExtension;
 use Nice\Extension\SessionExtension;
 use Nice\Extension\TemplatingExtension;
 use Nice\Extension\TwigExtension;
 use Symfony\Component\Yaml\Yaml;
+use Terramar\Packages\DependencyInjection\ApiExtension;
 use Terramar\Packages\DependencyInjection\PackagesExtension;
 use Terramar\Packages\Plugin\CloneProject\Plugin as CloneProjectPlugin;
 use Terramar\Packages\Plugin\GitHub\Plugin as GitHubPlugin;
@@ -41,15 +43,21 @@ class Application extends BaseApplication
 
         $this->registerDefaultPlugins();
 
+        AnnotationLoader::loadAnnotations();
+
         $config = Yaml::parse(file_get_contents($this->getRootDir() . '/config.yml'));
         $security = isset($config['security']) ? $config['security'] : [];
         $doctrine = isset($config['doctrine']) ? $config['doctrine'] : [];
         $packages = isset($config['packages']) ? $config['packages'] : [];
+        $logger = isset($config['logger']) ? $config['logger'] : [];
+        $api = isset($config['api']) ? $config['api'] : [];
         if (!isset($packages['resque'])) {
             $packages['resque'] = [];
         }
 
         $this->appendExtension(new PackagesExtension($this->plugins, $packages));
+        $this->appendExtension(new ApiExtension($api));
+        $this->appendExtension(new LogExtension($logger));
         $this->appendExtension(new DoctrineOrmExtension($doctrine));
         $this->appendExtension(new SessionExtension());
         $this->appendExtension(new TemplatingExtension());

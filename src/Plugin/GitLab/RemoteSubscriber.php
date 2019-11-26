@@ -58,7 +58,13 @@ class RemoteSubscriber implements EventSubscriberInterface
             return;
         }
 
-        $packages = $this->entityManager->getRepository('Terramar\Packages\Entity\Package')
+        $this->logger->info('GitLab\RemoteSubscriber::onDisableRemote - Remote disabled, disabling related projects hooks...', [
+            'remote_id' => $remote->getId(),
+            'remote_name' => $remote->getName()
+        ]);
+
+        $packages = $this->entityManager
+            ->getRepository('Terramar\Packages\Entity\Package')
             ->findBy(['remote' => $remote]);
 
         foreach ($packages as $package) {

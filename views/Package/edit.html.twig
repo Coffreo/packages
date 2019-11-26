@@ -52,14 +52,20 @@
                 <div>
                     <h4>Webhook</h4>
                     <div>
-                        {% if package.enabled and package.hookExternalId is empty %}
+                        {% if package.enabled and package.hookExternalId is not empty %}
+                            <div id="package_success" class="callout callout-success">
+                                The Package is enabled, and the webhook is installed on the Remote.
+                            </div>
+                        {% elseif package.enabled %}
                             <div id="package_error" class="callout callout-danger">
                                 The Package is enabled, but no webhook is installed on the Remote.<br>
                                 <strong>Pushing code will not trigger updates within this application.</strong>
+                                <br/><br/>
+                                <a href="#">Add webhook on {{ package.remote.adapter }}</a>
                             </div>
-                       {% else %}
-                            <div id="package_success" class="callout callout-success">
-                                The Package is enabled, and the webhook is installed on the Remote.
+                        {% else %}
+                            <div class="callout callout-info">
+                               The Package is not enabled. To trigger updates within this application when pushing code on the remote repository, you must enable this package.
                             </div>
                        {% endif %}
                         <p>The webhook URL is: {{ webhookUrl }}</p>

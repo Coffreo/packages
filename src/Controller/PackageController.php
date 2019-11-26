@@ -22,6 +22,14 @@ use Terramar\Packages\Plugin\Actions;
 
 class PackageController
 {
+    const CONTEXT_INTERFACE = 'interface';
+    const CONTEXT_API = 'api';
+
+    public function __construct($context = self::CONTEXT_INTERFACE)
+    {
+        $this->context = $context;
+    }
+
     public function indexAction(Application $app, Request $request)
     {
         /** @var \Doctrine\ORM\EntityManager $entityManager */
@@ -89,7 +97,10 @@ class PackageController
 
         /** @var \Terramar\Packages\Helper\PluginHelper $helper */
         $helper = $app->get('packages.helper.plugin');
-        $helper->invokeAction($request, Actions::PACKAGE_UPDATE, array_merge($request->request->all(), [
+        $action = $this->context === self::CONTEXT_INTERFACE
+            ? Actions::PACKAGE_UPDATE
+            : Actions::PACKAGE_API_UPDATE;
+        $helper->invokeAction($request, $action, array_merge($request->request->all(), [
             'id' => $id,
         ]));
 

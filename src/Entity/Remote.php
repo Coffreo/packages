@@ -10,32 +10,40 @@
 namespace Terramar\Packages\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Terramar\Packages\ApiSerializableEntityTrait;
 
 /**
- * @ORM\Entity
+ * @ORM\Entity(repositoryClass="Terramar\Packages\Repository\RemoteRepository")
  * @ORM\Table(name="remotes")
  */
 class Remote
 {
+    use ApiSerializableEntityTrait;
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      * @ORM\Column(name="id", type="integer")
+     * @Groups({"rest"})
      */
     private $id;
 
     /**
      * @ORM\Column(name="name", type="string")
+     * @Groups({"rest"})
      */
     private $name;
 
     /**
      * @ORM\Column(name="adapter", type="string", nullable=true)
+     * @Groups({"rest"})
      */
     private $adapter;
 
     /**
      * @ORM\Column(name="enabled", type="boolean")
+     * @Groups({"rest"})
      */
     private $enabled = true;
 

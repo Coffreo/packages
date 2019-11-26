@@ -22,6 +22,7 @@ use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
+use Terramar\Packages\AnnotationLoader;
 use Terramar\Packages\Application as AppKernel;
 use Terramar\Packages\Version;
 
@@ -45,6 +46,9 @@ class Application extends BaseApplication
         parent::__construct('Terramar Labs Packages', Version::VERSION);
 
         ErrorHandler::register();
+
+        AnnotationLoader::loadAnnotations();
+
         $this->app = $app;
     }
 

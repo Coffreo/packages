@@ -11,7 +11,6 @@ namespace Terramar\Packages\Plugin\Satis;
 
 use Composer\Satis\Satis;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 use Terramar\Packages\Plugin\Actions;
@@ -52,11 +51,19 @@ class Plugin implements PluginInterface, RouterPluginInterface, CompilerAwarePlu
         $container->register('packages.plugin.satis.inventory_controller', 'Terramar\Packages\Plugin\Satis\InventoryController')
             ->addMethodCall('setContainer', [new Reference('service_container')]);
 
+        $container->register('packages.plugin.satis.api_controller', 'Terramar\Packages\Plugin\Satis\ApiController')
+            ->addMethodCall('setEntityManager', [new Reference('doctrine.orm.entity_manager')])
+            ->addMethodCall('setLogger', [new Reference('logger.default')]);
+
         $container->getDefinition('packages.controller_manager')
             ->addMethodCall('registerController',
                 [Actions::PACKAGE_EDIT, 'Terramar\Packages\Plugin\Satis\Controller::editAction'])
             ->addMethodCall('registerController',
-                [Actions::PACKAGE_UPDATE, 'Terramar\Packages\Plugin\Satis\Controller::updateAction']);
+                [Actions::PACKAGE_UPDATE, 'Terramar\Packages\Plugin\Satis\Controller::updateAction'])
+            ->addMethodCall('registerController',
+                [Actions::PACKAGE_API_GET, 'packages.plugin.satis.api_controller:getAction'])
+            ->addMethodCall('registerController',
+                [Actions::PACKAGE_API_UPDATE, 'packages.plugin.satis.api_controller:updateAction']);
 
         $container->getDefinition('packages.command_registry')
             ->addMethodCall('addCommand', ['Terramar\Packages\Plugin\Satis\Command\BuildCommand'])

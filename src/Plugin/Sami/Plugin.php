@@ -32,12 +32,19 @@ class Plugin implements PluginInterface
             ->addArgument(new Reference('doctrine.orm.entity_manager'))
             ->addTag('kernel.event_subscriber');
 
+        $container->register('packages.plugin.sami.api_controller', 'Terramar\Packages\Plugin\Sami\ApiController')
+            ->addMethodCall('setEntityManager', [new Reference('doctrine.orm.entity_manager')])
+            ->addMethodCall('setLogger', [new Reference('logger.default')]);
+
         $container->getDefinition('packages.controller_manager')
             ->addMethodCall('registerController',
                 [Actions::PACKAGE_EDIT, 'Terramar\Packages\Plugin\Sami\Controller::editAction'])
             ->addMethodCall('registerController',
-                [Actions::PACKAGE_UPDATE, 'Terramar\Packages\Plugin\Sami\Controller::updateAction']);
-    }
+                [Actions::PACKAGE_UPDATE, 'Terramar\Packages\Plugin\Sami\Controller::updateAction'])
+            ->addMethodCall('registerController',
+                [Actions::PACKAGE_API_GET, 'packages.plugin.sami.api_controller:getAction'])
+            ->addMethodCall('registerController',
+                [Actions::PACKAGE_API_UPDATE, 'packages.plugin.sami.api_controller:updateAction']);    }
 
     /**
      * Get the plugin name.

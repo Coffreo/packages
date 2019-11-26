@@ -63,6 +63,16 @@ class RouteCollector extends BaseCollector
         $this->map('/manage/remote/{id}/sync', 'manage_remote_sync',
             'Terramar\Packages\Controller\RemoteController::syncAction');
 
+        // -- API
+        // packages
+        $this->map('/api/packages', 'api_package_list', 'packages.api.package.controller:indexAction');
+        $this->map('/api/packages/{id}', 'api_package_get', 'packages.api.package.controller:packageAction');
+        $this->map('/api/packages/{id}', 'api_package_update', 'packages.api.package.controller:updateAction', ['POST']);
+        // remotes
+        $this->map('/api/remotes', 'api_remote_list', 'packages.api.remote.controller:indexAction');
+        $this->map('/api/remotes/{id}', 'api_remote_get', 'packages.api.remote.controller:remoteAction');
+        $this->map('/api/remotes/{id}', 'api_remote_update', 'packages.api.remote.controller:updateAction', ['POST']);
+
         foreach ($this->plugins as $plugin) {
             $plugin->collect($this);
         }

@@ -13,7 +13,6 @@ use Nice\Application;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Session\Flash\FlashBag;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Terramar\Packages\Entity\Remote;
@@ -23,6 +22,14 @@ use Terramar\Packages\Plugin\Actions;
 
 class RemoteController
 {
+    const CONTEXT_INTERFACE = 'interface';
+    const CONTEXT_API = 'api';
+
+    public function __construct($context = self::CONTEXT_INTERFACE)
+    {
+        $this->context = $context;
+    }
+
     public function indexAction(Application $app, Request $request)
     {
         /** @var \Doctrine\ORM\EntityManager $entityManager */
@@ -116,6 +123,9 @@ class RemoteController
 
         /** @var \Terramar\Packages\Helper\PluginHelper $helper */
         $helper = $app->get('packages.helper.plugin');
+        $action = $this->context === self::CONTEXT_INTERFACE
+            ? Actions::REMOTE_UPDATE
+            : Actions::REMOTE_API_UPDATE;
         $helper->invokeAction($request, Actions::REMOTE_UPDATE, array_merge($request->request->all(), [
             'id' => $id,
         ]));

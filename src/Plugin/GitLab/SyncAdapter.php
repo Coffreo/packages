@@ -15,6 +15,7 @@ use Gitlab\Exception\RuntimeException;
 use Gitlab\HttpClient\Builder;
 use Gitlab\Model\Project;
 use Nice\Router\UrlGeneratorInterface;
+use Psr\Log\LoggerInterface;
 use Terramar\Packages\Entity\Package;
 use Terramar\Packages\Entity\Remote;
 use Terramar\Packages\Helper\SyncAdapterInterface;
@@ -23,25 +24,32 @@ use Doctrine\DBAL\Exception\DatabaseObjectNotFoundException;
 class SyncAdapter implements SyncAdapterInterface
 {
     /**
-     * @var \Doctrine\ORM\EntityManager
+     * @var EntityManager
      */
     private $entityManager;
 
     /**
-     * @var \Nice\Router\UrlGeneratorInterface
+     * @var UrlGeneratorInterface
      */
     private $urlGenerator;
+
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
 
     /**
      * Constructor.
      *
      * @param EntityManager         $entityManager
      * @param UrlGeneratorInterface $urlGenerator
+     * @param LoggerInterface       $logger
      */
-    public function __construct(EntityManager $entityManager, UrlGeneratorInterface $urlGenerator)
+    public function __construct(EntityManager $entityManager, UrlGeneratorInterface $urlGenerator, LoggerInterface $logger)
     {
         $this->entityManager = $entityManager;
         $this->urlGenerator = $urlGenerator;
+        $this->logger = $logger;
     }
 
     /**
@@ -117,25 +125,32 @@ class SyncAdapter implements SyncAdapterInterface
     public function enableHook(Package $package)
     {
         $config = $this->getConfig($package);
-        if ($config->isEnabled()) {
-            return true;
-        }
+        $this->logger->info('GitLab/SyncAdapter::enableHook - Enabling hook...');
+
         try {
             $client = $this->getClient($package->getRemote());
             $project = Project::fromArray($client, (array)$client->api('projects')->show($package->getExternalId()));
             $hook = $project->addHook(
-                $this->urlGenerator->generate('webhook_receive', ['id' => $package->getId()], true),
-                [
+                $this->urlGenerator->generate('webhook_receive', ['id' => $package->getId()], true), [
                     'push_events'     => true,
                     'tag_push_events' => true,
+                    'push_events_branch_filter' => false,
+                    'issues_events' => false,
+                    'confidential_issues_events' => false,
+                    'merge_requests_events' => false,
+                    'note_events' => false,
+                    'job_events' => false,
+                    'pipeline_events' => false,
+                    'wiki_page_event' => false,
                 ]
             );
             $package->setHookExternalId($hook->id);
             $config->setEnabled(true);
+            $this->logger->info('GitLab/SyncAdapter::enableHook - Hook enabled', ['hook_id' => $hook['id']]);
 
             return true;
         } catch (\Exception $e) {
-            // TODO: Log the exception
+            $this->logger->error('GitLab/SyncAdapter::enableHook - An error occured while enabling hook', ['exception' => $e]);
             return false;
         }
     }
@@ -150,29 +165,29 @@ class SyncAdapter implements SyncAdapterInterface
     public function disableHook(Package $package)
     {
         $config = $this->getConfig($package);
-        if ( ! $config->isEnabled()) {
-            return true;
-        }
 
         if ($package->getHookExternalId()) {
+            $this->logger->info('GitLab/SyncAdapter::disableHook - Disabling hook...');
             try {
                 $client = $this->getClient($package->getRemote());
                 $project = Project::fromArray($client, (array)$client->api('projects')->show($package->getExternalId()));
                 $project->removeHook($package->getHookExternalId());
+                $package->setHookExternalId(null);
             } catch (RuntimeException $e) {
                 // it's ok if it's already gone
                 if ($e->getCode() != 404) {
                     throw $e;
                 }
             } catch (\Exception $e) {
-	            // TODO: Log the exception
-	            $package->setHookExternalId('');
-	            $config->setEnabled(false);
+                $this->logger->error('GitLab/SyncAdapter::disableHook - An error occured while disabling hook', ['exception' => $e]);
+                $package->setHookExternalId(null);
+                $config->setEnabled(false);
 
-	            return false;
-	        }
+                return false;
+            }
         }
 
+        $this->logger->info('GitLab/SyncAdapter::disableHook - Hook disabled');
         return true;
     }
 
@@ -191,7 +206,7 @@ class SyncAdapter implements SyncAdapterInterface
         return $this->entityManager->getRepository('Terramar\Packages\Plugin\GitLab\RemoteConfiguration')->findOneBy(['remote' => $remote]);
     }
 
-    private function getAllProjects(Remote $remote)
+    public function getAllProjects(Remote $remote)
     {
         $client = $this->getClient($remote);
 
