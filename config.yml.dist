@@ -59,28 +59,28 @@ packages:
 # default uses error_log handler with log_level set to 200 (INFO)
 logger:
 # log channels
-channels:
-  default:
-    # the log handler (stream or error_log)
-    handler: 'stream'
-    # log level
-    #   100 DEBUG
-    #   200 INFO
-    #   250 NOTICE
-    #   300 WARNING
-    #   400 ERROR
-    #   500 CRITICAL
-    #   550 ALERT
-    #   600 EMERGENCY
-    level: 100
-    options:
-      # path to log file
-      # (available only for stream handler)
-      # placeholders:
-      #   %app.log_dir%   logs folder
-      #   %app.root_dir%  project root folder
-      #   %app.env%       current environment
-      file: '%app.log_dir%/%app.env%.log'
+  channels:
+    default:
+      # the log handler (stream or error_log)
+      handler: 'stream'
+      # log level
+      #   100 DEBUG
+      #   200 INFO
+      #   250 NOTICE
+      #   300 WARNING
+      #   400 ERROR
+      #   500 CRITICAL
+      #   550 ALERT
+      #   600 EMERGENCY
+      level: 100
+      options:
+        # path to log file
+        # (available only for stream handler)
+        # placeholders:
+        #   %app.log_dir%   logs folder
+        #   %app.root_dir%  project root folder
+        #   %app.env%       current environment
+        file: '%app.log_dir%/%app.env%.log'
 
 # api configuration (default enabled)
 api:
