@@ -74,6 +74,7 @@ class Application extends BaseApplication
         $this->addCommands([
             // Config commands
             new \Terramar\Packages\Console\Command\ConfigureSecurityCommand(),
+            new \Terramar\Packages\Console\Command\ConfigureApiCommand(),
 
             // Resque Commands
             new \Terramar\Packages\Console\Command\Worker\StartCommand(),

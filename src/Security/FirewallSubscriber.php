@@ -69,6 +69,11 @@ class FirewallSubscriber implements EventSubscriberInterface
     private $eventDispatcher;
 
     /**
+     * @var \Symfony\Component\HttpFoundation\RequestMatcherInterface
+     */
+    private $apiMatcher;
+
+    /**
      * Constructor
      *
      * @param EventDispatcherInterface $eventDispatcher
@@ -101,6 +106,14 @@ class FirewallSubscriber implements EventSubscriberInterface
     }
 
     /**
+     * @param $apiMatcher
+     */
+    public function setApiMatcher(RequestMatcherInterface $apiMatcher)
+    {
+        $this->apiMatcher = $apiMatcher;
+    }
+
+    /**
      * @param GetResponseEvent $event
      */
     public function onKernelRequest(GetResponseEvent $event)
@@ -112,6 +125,12 @@ class FirewallSubscriber implements EventSubscriberInterface
         $request = $event->getRequest();
         if ($this->authMatcher->matches($request)) {
             $this->handleAuthentication($event);
+
+            return;
+        }
+
+        if ($this->apiMatcher->matches($request)) {
+            $this->handleApiAuthentication($event);
 
             return;
         }
@@ -176,6 +195,17 @@ class FirewallSubscriber implements EventSubscriberInterface
             $this->eventDispatcher->dispatch(Events::LOGIN_FAIL, $failEvent);
 
             $this->redirectForAuthentication($event);
+        }
+    }
+
+    private function handleApiAuthentication(GetResponseEvent $event)
+    {
+        $request = $event->getRequest();
+
+        if (!$this->authenticator->authenticate($request)) {
+            $event->setResponse(new Response('', 403));
+
+            return;
         }
     }
 

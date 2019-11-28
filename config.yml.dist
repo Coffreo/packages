@@ -84,6 +84,9 @@ logger:
         file: '%app.log_dir%/%app.env%.log'
 
 # api configuration (default enabled)
+# enable/disable the rest api
+# token to pass with BASIC AUTHENTICATION to allow api access
+# use bin/console config:api to define this section
 api:
-  # enable/disable the rest api
   enabled: true
+  # token: ENCODED_TOKEN

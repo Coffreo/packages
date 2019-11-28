@@ -38,8 +38,8 @@ class Plugin implements PluginInterface
             ->addTag('kernel.event_subscriber');
 
         $container->register('packages.plugin.clone_project.api_controller', 'Terramar\Packages\Plugin\CloneProject\ApiController')
-            ->addMethodCall('setEntityManager', [new Reference('doctrine.orm.entity_manager')])
-            ->addMethodCall('setLogger', [new Reference('logger.default')]);
+            ->addArgument(new Reference('doctrine.orm.entity_manager'))
+            ->addArgument(new Reference('logger.default'));
 
         $container->getDefinition('packages.controller_manager')
             ->addMethodCall('registerController',

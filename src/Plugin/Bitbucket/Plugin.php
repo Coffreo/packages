@@ -44,11 +44,12 @@ class Plugin implements PluginInterface
             'Terramar\Packages\Plugin\Bitbucket\RemoteSubscriber')
             ->addArgument(new Reference('packages.plugin.bitbucket.adapter'))
             ->addArgument(new Reference('doctrine.orm.entity_manager'))
+            ->addArgument(new Reference('logger.default'))
             ->addTag('kernel.event_subscriber');
 
         $container->register('packages.plugin.bitbucket.api_controller', 'Terramar\Packages\Plugin\Bitbucket\ApiController')
-            ->addMethodCall('setEntityManager', [new Reference('doctrine.orm.entity_manager')])
-            ->addMethodCall('setLogger', [new Reference('logger.default')]);
+            ->addArgument(new Reference('doctrine.orm.entity_manager'))
+            ->addArgument(new Reference('logger.default'));
 
         $container->getDefinition('packages.controller_manager')
             ->addMethodCall('registerController',

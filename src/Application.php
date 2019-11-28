@@ -16,6 +16,8 @@ use Nice\Extension\SecurityExtension;
 use Nice\Extension\SessionExtension;
 use Nice\Extension\TemplatingExtension;
 use Nice\Extension\TwigExtension;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestMatcherInterface;
 use Symfony\Component\Yaml\Yaml;
 use Terramar\Packages\DependencyInjection\ApiExtension;
 use Terramar\Packages\DependencyInjection\PackagesExtension;
@@ -40,6 +42,11 @@ class Application extends BaseApplication
     private $securityOptions;
 
     /**
+     * @var string encoded api token
+     */
+    private $apiToken;
+
+    /**
      * Register default extensions.
      */
     protected function registerDefaultExtensions()
@@ -61,6 +68,7 @@ class Application extends BaseApplication
         }
 
         $this->securityOptions = $security;
+        $this->apiToken = array_key_exists('token', $api) ? $api['token'] : null;
 
         $this->appendExtension(new PackagesExtension($this->plugins, $packages));
         $this->appendExtension(new ApiExtension($api));
@@ -73,7 +81,7 @@ class Application extends BaseApplication
             'authenticator' => [
                 'type'     => 'closure',
             ],
-            'firewall'      => '^/manage',
+            'firewall'      => '^/manage|api',
             'success_path'  => '/manage',
         ]));
     }
@@ -91,6 +99,13 @@ class Application extends BaseApplication
         if ($username && $password && $request->get('username') && $request->get('password')) {
             return $request->get('username') === $username &&
                 password_verify($request->get('password') , $password);
+        }
+
+        /** @var RequestMatcherInterface $matcher */
+        $matcher = $this->get('packages.api.request_matcher');
+        if ($matcher->matches($request)) {
+            $apiToken = trim(preg_replace('/^Bearer\s*/', '', $request->headers->get('Authorization')));
+            return password_verify($apiToken, $this->apiToken);
         }
 
         return false;

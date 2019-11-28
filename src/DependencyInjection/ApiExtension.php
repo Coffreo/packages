@@ -81,18 +81,18 @@ class ApiExtension extends Extension implements CompilerAwareExtensionInterface
 
         // Controllers
         $container->register('packages.api.package.controller', 'Terramar\Packages\Controller\Api\PackageController')
-            ->addMethodCall('setSerializer', [new Reference('packages.api.serializer')])
-            ->addMethodCall('setEntityManager', [new Reference('doctrine.orm.entity_manager')])
-            ->addMethodCall('setLogger', [new Reference('logger.default')])
-            ->addMethodCall('setPluginHelper', [new Reference('packages.helper.plugin')])
-            ->addMethodCall('setRouter', [new Reference('router.url_generator')]);
+            ->addArgument(new Reference('doctrine.orm.entity_manager'))
+            ->addArgument(new Reference('logger.default'))
+            ->addArgument(new Reference('packages.api.serializer'))
+            ->addArgument(new Reference('packages.helper.plugin'))
+            ->addArgument(new Reference('router.url_generator'));
 
         $container->register('packages.api.remote.controller', 'Terramar\Packages\Controller\Api\RemoteController')
-            ->addMethodCall('setSerializer', [new Reference('packages.api.serializer')])
-            ->addMethodCall('setEntityManager', [new Reference('doctrine.orm.entity_manager')])
-            ->addMethodCall('setLogger', [new Reference('logger.default')])
-            ->addMethodCall('setPluginHelper', [new Reference('packages.helper.plugin')])
-            ->addMethodCall('setRouter', [new Reference('router.url_generator')]);
+            ->addArgument(new Reference('doctrine.orm.entity_manager'))
+            ->addArgument(new Reference('logger.default'))
+            ->addArgument(new Reference('packages.api.serializer'))
+            ->addArgument(new Reference('packages.helper.plugin'))
+            ->addArgument(new Reference('router.url_generator'));
     }
 
     /**

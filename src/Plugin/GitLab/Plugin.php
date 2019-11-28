@@ -44,11 +44,12 @@ class Plugin implements PluginInterface
             'Terramar\Packages\Plugin\GitLab\RemoteSubscriber')
             ->addArgument(new Reference('packages.plugin.gitlab.adapter'))
             ->addArgument(new Reference('doctrine.orm.entity_manager'))
+            ->addArgument(new Reference('logger.default'))
             ->addTag('kernel.event_subscriber');
 
         $container->register('packages.plugin.gitlab.api_controller', 'Terramar\Packages\Plugin\GitLab\ApiController')
-            ->addMethodCall('setEntityManager', [new Reference('doctrine.orm.entity_manager')])
-            ->addMethodCall('setLogger', [new Reference('logger.default')]);
+            ->addArgument(new Reference('doctrine.orm.entity_manager'))
+            ->addArgument(new Reference('logger.default'));
 
         $container->getDefinition('packages.controller_manager')
             ->addMethodCall('registerController',

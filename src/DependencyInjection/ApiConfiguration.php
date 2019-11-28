@@ -27,6 +27,7 @@ class ApiConfiguration implements ConfigurationInterface
         $rootNode
             ->children()
                 ->booleanNode('enabled')->defaultFalse()->end()
+                ->scalarNode('token')->isRequired()->end()
             ->end();
 
         return $treeBuilder;

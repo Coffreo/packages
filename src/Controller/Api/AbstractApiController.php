@@ -11,6 +11,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Serializer\SerializerInterface;
+use Terramar\Packages\Application;
 use Terramar\Packages\Helper\PluginHelper;
 
 /**
@@ -22,14 +23,14 @@ use Terramar\Packages\Helper\PluginHelper;
 abstract class AbstractApiController
 {
     /**
-     * @var SerializerInterface
-     */
-    protected $serializer;
-
-    /**
      * @var EntityManager
      */
     protected $em;
+
+    /**
+     * @var LoggerInterface
+     */
+    protected $logger;
 
     /**
      * @var PluginHelper
@@ -37,38 +38,37 @@ abstract class AbstractApiController
     protected $pluginHelper;
 
     /**
+     * @var SerializerInterface
+     */
+    protected $serializer;
+
+    /**
      * @var UrlGeneratorInterface
      */
     protected $router;
 
     /**
-     * @var LoggerInterface
+     * AbstractApiController constructor.
+     *
+     * @param EntityManager         $em
+     * @param LoggerInterface       $logger
+     * @param SerializerInterface   $serializer
+     * @param PluginHelper          $pluginHelper
+     * @param UrlGeneratorInterface $router
      */
-    protected $logger;
-
-    public function setSerializer(SerializerInterface $serializer)
-    {
-        $this->serializer = $serializer;
-    }
-
-    public function setEntityManager(EntityManager $em)
+    public function __construct(
+        EntityManager $em,
+        LoggerInterface $logger,
+        SerializerInterface $serializer = null,
+        PluginHelper $pluginHelper = null,
+        UrlGeneratorInterface $router = null
+    )
     {
         $this->em = $em;
-    }
-
-    public function setPluginHelper(PluginHelper $pluginHelper)
-    {
-        $this->pluginHelper = $pluginHelper;
-    }
-
-    public function setRouter(UrlGeneratorInterface $router)
-    {
-        $this->router = $router;
-    }
-
-    public function setLogger(LoggerInterface $logger)
-    {
         $this->logger = $logger;
+        $this->serializer = $serializer;
+        $this->pluginHelper = $pluginHelper;
+        $this->router = $router;
     }
 
     /**
@@ -98,7 +98,8 @@ abstract class AbstractApiController
         return $this->serializer->serialize($data, 'json', ['groups' => ['rest']]);
     }
 
-    protected function paginatorlinksSection($routeName, Request $request, $total) {
+    protected function paginatorlinksSection($routeName, Request $request, $total)
+    {
         list($page, $perPage) = $this->getPaginationParameters($request);
 
         $maxPage = ($perPage ? ceil($total / $perPage) : 1) ?: 1;
@@ -132,6 +133,5 @@ abstract class AbstractApiController
         }
 
         return $url;
-
     }
 }

@@ -12,6 +12,7 @@ namespace Terramar\Packages\DependencyInjection\Compiler;
 
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Reference;
 
 class OverrideServicesCompilerPass implements CompilerPassInterface
 {
@@ -22,7 +23,12 @@ class OverrideServicesCompilerPass implements CompilerPassInterface
      */
     public function process(ContainerBuilder $container)
     {
+        $container->register('packages.api.request_matcher',
+            'Symfony\Component\HttpFoundation\RequestMatcher')
+            ->addArgument('^/api');
+
         $container->getDefinition('security.security_subscriber')
-            ->setClass('Terramar\Packages\Security\FirewallSubscriber');
+            ->setClass('Terramar\Packages\Security\FirewallSubscriber')
+            ->addMethodCall('setApiMatcher', [new Reference('packages.api.request_matcher')]);
     }
 }
