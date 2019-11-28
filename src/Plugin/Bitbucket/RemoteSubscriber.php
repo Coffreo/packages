@@ -43,7 +43,7 @@ class RemoteSubscriber implements EventSubscriberInterface
     {
         $this->adapter = $adapter;
         $this->entityManager = $entityManager;
-        $this->logger= $logger;
+        $this->logger = $logger;
     }
 
     /**

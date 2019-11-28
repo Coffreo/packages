@@ -184,8 +184,7 @@ class SyncAdapter implements SyncAdapterInterface
             $response = $client->getHttpClient()->post($url, json_encode([
                 'name'   => 'web',
                 'config' => [
-                    'url'          => $this->urlGenerator->generate('webhook_receive', ['id' => $package->getId()],
-                        true),
+                    'url' => $this->urlGenerator->generate('webhook_receive', ['id' => $package->getId()], true),
                     'content_type' => 'json',
                 ],
                 'events' => ['push', 'create'],

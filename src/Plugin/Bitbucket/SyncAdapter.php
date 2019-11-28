@@ -223,7 +223,6 @@ class SyncAdapter implements SyncAdapterInterface
                 'events' => ['repo:push'],
             ]);
 
-
             $hook = json_decode($response->getContent(), true);
 
             if (!empty($hook['uuid'])) {
