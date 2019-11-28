@@ -72,6 +72,9 @@ class Application extends BaseApplication
     protected function registerCommands()
     {
         $this->addCommands([
+            // Config commands
+            new \Terramar\Packages\Console\Command\ConfigureSecurityCommand(),
+
             // Resque Commands
             new \Terramar\Packages\Console\Command\Worker\StartCommand(),
             new \Terramar\Packages\Console\Command\Worker\ListCommand(),

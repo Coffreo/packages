@@ -35,6 +35,11 @@ class Application extends BaseApplication
     private $plugins = [];
 
     /**
+     * @var array
+     */
+    private $securityOptions;
+
+    /**
      * Register default extensions.
      */
     protected function registerDefaultExtensions()
@@ -55,6 +60,8 @@ class Application extends BaseApplication
             $packages['resque'] = [];
         }
 
+        $this->securityOptions = $security;
+
         $this->appendExtension(new PackagesExtension($this->plugins, $packages));
         $this->appendExtension(new ApiExtension($api));
         $this->appendExtension(new LogExtension($logger));
@@ -64,15 +71,29 @@ class Application extends BaseApplication
         $this->appendExtension(new TwigExtension());
         $this->appendExtension(new SecurityExtension([
             'authenticator' => [
-                'type'     => 'username',
-                'username' => isset($security['username']) ? $security['username'] : null,
-                'password' => isset($security['password'])
-                    ? password_hash($security['password'], PASSWORD_DEFAULT)
-                    : null,
+                'type'     => 'closure',
             ],
             'firewall'      => '^/manage',
             'success_path'  => '/manage',
         ]));
+    }
+
+    public function handle(Request $request, $type = BaseApplication::MASTER_REQUEST, $catch = true)
+    {
+        $this->set('security.authenticator', [$this, 'checkAuthentication']);
+
+        return BaseApplication::handle($request, $type, $catch);
+    }
+
+    public function checkAuthentication(Request $request) {
+        $username = isset($this->securityOptions['username']) ? $this->securityOptions['username'] : null;
+        $password = isset($this->securityOptions['password']) ? $this->securityOptions['password'] : null;
+        if ($username && $password && $request->get('username') && $request->get('password')) {
+            return $request->get('username') === $username &&
+                password_verify($request->get('password') , $password);
+        }
+
+        return false;
     }
 
     /**

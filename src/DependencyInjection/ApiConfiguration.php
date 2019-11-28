@@ -26,7 +26,7 @@ class ApiConfiguration implements ConfigurationInterface
 
         $rootNode
             ->children()
-                ->booleanNode('enabled')->defaultValue(true)->end()
+                ->booleanNode('enabled')->defaultFalse()->end()
             ->end();
 
         return $treeBuilder;

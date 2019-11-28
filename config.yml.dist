@@ -1,7 +1,8 @@
+# Username and password to access the web management interface
+# use bin/console config:security to set username/password
 security:
-  # Username and password to access the web management interface
   username: somebody
-  password: password
+  password: ENCODED_PASSWORD
 
 doctrine:
   mapping: 
