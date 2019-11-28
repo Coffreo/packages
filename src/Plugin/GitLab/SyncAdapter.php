@@ -146,7 +146,8 @@ class SyncAdapter implements SyncAdapterInterface
             );
             $package->setHookExternalId($hook->id);
             $config->setEnabled(true);
-            $this->logger->info('GitLab/SyncAdapter::enableHook - Hook enabled', ['hook_id' => $hook['id']]);
+
+            $this->logger->info('GitLab/SyncAdapter::enableHook - Hook enabled', ['hook_id' => $hook->id]);
 
             return true;
         } catch (\Exception $e) {
