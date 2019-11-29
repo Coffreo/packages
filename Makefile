@@ -10,6 +10,8 @@ config.yml:
 
 ## edit configuration
 configure: config.yml
+	bin/console config:security
+	bin/console config:api
 	vi config.yml
 
 ## initialize sqlite database if file doesn't exist
