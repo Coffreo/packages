@@ -23,6 +23,11 @@ use Terramar\Packages\Controller\RemoteController as BaseRemoteController;
 
 class RemoteController extends AbstractApiController
 {
+    function getSensitiveDataKeys()
+    {
+        return [];
+    }
+
     /**
      * Availables query parameters:
      *   * enabled      boolean [true] whether to retrieve only enabled remote,

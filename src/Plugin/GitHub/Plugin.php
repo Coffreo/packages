@@ -48,6 +48,7 @@ class Plugin implements PluginInterface
             ->addTag('kernel.event_subscriber');
 
         $container->register('packages.plugin.github.api_controller', 'Terramar\Packages\Plugin\GitHub\ApiController')
+            ->addArgument(new Reference('app'))
             ->addArgument(new Reference('doctrine.orm.entity_manager'))
             ->addArgument(new Reference('logger.default'));
 

@@ -52,7 +52,7 @@ class ConfigureApiCommand extends ContainerAwareCommand
             "This is recommended to choose 'hide' or 'placeholder' to avoid leaking gitlab/github/bitbucket token\n".
             "in case of packages authentication is compromised'\n".
             "Note that you can still update token via api even if you hide/use placeholder for thoses values\n",
-            ['hide', 'placeholder', 'none'],
+            ['hide', 'placeholder', 'show'],
             'hide'
         );
 

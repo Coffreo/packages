@@ -83,10 +83,17 @@ logger:
         #   %app.env%       current environment
         file: '%app.log_dir%/%app.env%.log'
 
-# api configuration (default enabled)
-# enable/disable the rest api
-# token to pass with BASIC AUTHENTICATION to allow api access
-# use bin/console config:api to define this section
-api:
-  enabled: true
-  # token: ENCODED_TOKEN
+# api configuration (default is disabled)
+# use "bin/console config:api" to define this section
+#
+# enabled:   enable/disable the rest api
+# token:     BEARER AUTHENTICATION token to allow api access
+# sensitive_data_strategy:
+#   how sensitive data are displayed in api response:
+#    - "hide" sensitive data aren't present in response
+#    - "show" sensitive data are present in response
+#    - "placeholder" sensitive data are displayed with hard-coded static string in response
+#api:
+#  enabled: true
+#  token: ENCODED_TOKEN
+#  sensitive_data_strategy: hide

@@ -50,6 +50,8 @@ class ApiExtension extends Extension implements CompilerAwareExtensionInterface
             return;
         }
 
+        $container->setParameter('packages.api.sensitive_data_strategy', $config['sensitive_data_strategy']);
+
         // ClassMetadataFactory
         $container->register('packages.api.serializer.annotation.reader', 'Doctrine\Common\Annotations\AnnotationReader');
         $container->register('packages.api.serializer.annotation.loader', 'Symfony\Component\Serializer\Mapping\Loader\AnnotationLoader')
@@ -81,6 +83,7 @@ class ApiExtension extends Extension implements CompilerAwareExtensionInterface
 
         // Controllers
         $container->register('packages.api.package.controller', 'Terramar\Packages\Controller\Api\PackageController')
+            ->addArgument(new Reference('app'))
             ->addArgument(new Reference('doctrine.orm.entity_manager'))
             ->addArgument(new Reference('logger.default'))
             ->addArgument(new Reference('packages.api.serializer'))
@@ -88,6 +91,7 @@ class ApiExtension extends Extension implements CompilerAwareExtensionInterface
             ->addArgument(new Reference('router.url_generator'));
 
         $container->register('packages.api.remote.controller', 'Terramar\Packages\Controller\Api\RemoteController')
+            ->addArgument(new Reference('app'))
             ->addArgument(new Reference('doctrine.orm.entity_manager'))
             ->addArgument(new Reference('logger.default'))
             ->addArgument(new Reference('packages.api.serializer'))

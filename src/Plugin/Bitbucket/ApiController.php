@@ -17,6 +17,13 @@ use Terramar\Packages\Controller\Api\AbstractApiController;
 
 class ApiController extends AbstractApiController
 {
+    function getSensitiveDataKeys()
+    {
+        return [
+            'bitbucket_token'
+        ];
+    }
+
     public function getAction(Application $app, Request $request, $id)
     {
         $config = $this->getRemoteConfiguration($id);
@@ -24,11 +31,11 @@ class ApiController extends AbstractApiController
             return new JsonResponse();
         }
 
-        return new JsonResponse([
+        return new JsonResponse($this->handleSensitiveDataOutput([
             'bitbucket_token' => $config->getToken(),
             'bitbucket_username' => $config->getUsername(),
             'bitbucket_account' => $config->getAccount()
-        ]);
+        ]));
     }
 
     public function updateAction(Application $app, Request $request, $id)
@@ -39,9 +46,20 @@ class ApiController extends AbstractApiController
             return new Response();
         }
 
-        $config->setToken($request->get('bitbucket_token'));
-        $config->setUsername($request->get('bitbucket_username'));
-        $config->setAccount($request->get('bitbucket_account'));
+        $data = $this->handleSensitiveDataInput($request->request->all());
+
+        if (array_key_exists('bitbucket_token', $data)) {
+            $config->setToken($data['bitbucket_token']);
+        }
+
+        if (array_key_exists('bitbucket_username', $data)) {
+            $config->setUsername($data['bitbucket_username']);
+        }
+
+        if (array_key_exists('bitbucket_account', $data)) {
+            $config->setUsername($data['bitbucket_account']);
+        }
+
         $config->setEnabled($config->getRemote()->isEnabled());
 
         $this->em->persist($config);

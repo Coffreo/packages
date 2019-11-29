@@ -18,6 +18,11 @@ use Terramar\Packages\Controller\Api\AbstractApiController;
 
 class ApiController extends AbstractApiController
 {
+    function getSensitiveDataKeys()
+    {
+        return [];
+    }
+
     public function getAction(Application $app, Request $request, $id)
     {
         $config = $this->getConfiguration($id);
@@ -29,8 +34,11 @@ class ApiController extends AbstractApiController
     public function updateAction(Application $app, Request $request, $id)
     {
         $config = $this->getConfiguration($id);
-        $config->setEnabled($request->get('sami_enabled') ? true : false);
-        $this->em->persist($config);
+        $postData = $this->handleSensitiveDataInput($request->request->all());
+        if (array_key_exists('sami_enabled', $postData)) {
+            $config->setEnabled($postData['sami_enabled'] ? true : false);
+            $this->em->persist($config);
+        }
 
         return new Response();
     }

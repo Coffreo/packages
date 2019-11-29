@@ -38,6 +38,14 @@ class ApiConfiguration implements ConfigurationInterface
             ->children()
                 ->booleanNode('enabled')->defaultFalse()->end()
                 ->scalarNode('token')->defaultFalse()->end()
+                ->scalarNode('sensitive_data_strategy')
+                    ->info('Choose "hide" to remove sensitive data from output, "placeholder" to display as "--HIDDEN--", or "none" to output sensitive data unmodified')
+                    ->defaultValue('hide')
+                    ->validate()
+                        ->ifNotInArray(array('hide', 'show', 'placeholder'))
+                        ->thenInvalid('Invalid security authenticator "%s"')
+                    ->end()
+                ->end()
             ->end();
 
         return $treeBuilder;

@@ -17,6 +17,13 @@ use Terramar\Packages\Controller\Api\AbstractApiController;
 
 class ApiController extends AbstractApiController
 {
+    function getSensitiveDataKeys()
+    {
+        return [
+            'github_token'
+        ];
+    }
+
     public function getAction(Application $app, Request $request, $id)
     {
         $config = $this->getRemoteConfiguration($id);
@@ -24,10 +31,10 @@ class ApiController extends AbstractApiController
             return new JsonResponse();
         }
 
-        return new JsonResponse([
+        return new JsonResponse($this->handleSensitiveDataOutput([
             'github_token' => $config->getToken(),
             'github_username' => $config->getUsername()
-        ]);
+        ]));
     }
 
     public function updateAction(Application $app, Request $request, $id)
@@ -38,8 +45,14 @@ class ApiController extends AbstractApiController
             return new Response();
         }
 
-        $config->setToken($request->get('github_token'));
-        $config->setUsername($request->get('github_username'));
+        $postData = $this->handleSensitiveDataInput($request->request->all());
+
+        if (array_key_exists('github_token', $postData)) {
+            $config->setToken($postData['github_token']);
+        }
+        if (array_key_exists('github_username', $postData)) {
+            $config->setToken($postData['github_username']);
+        }
         $config->setEnabled($config->getRemote()->isEnabled());
 
         $this->em->persist($config);

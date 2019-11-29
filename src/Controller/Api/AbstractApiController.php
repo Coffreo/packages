@@ -22,6 +22,8 @@ use Terramar\Packages\Helper\PluginHelper;
  */
 abstract class AbstractApiController
 {
+    const SENSITIVE_VALUE = '--HIDDEN-FOR-SECURITY-CONCERNS--';
+
     /**
      * @var EntityManager
      */
@@ -48,8 +50,14 @@ abstract class AbstractApiController
     protected $router;
 
     /**
+     * @return array
+     */
+    abstract function getSensitiveDataKeys();
+
+    /**
      * AbstractApiController constructor.
      *
+     * @param Application           $app
      * @param EntityManager         $em
      * @param LoggerInterface       $logger
      * @param SerializerInterface   $serializer
@@ -57,6 +65,7 @@ abstract class AbstractApiController
      * @param UrlGeneratorInterface $router
      */
     public function __construct(
+        Application $app,
         EntityManager $em,
         LoggerInterface $logger,
         SerializerInterface $serializer = null,
@@ -64,11 +73,53 @@ abstract class AbstractApiController
         UrlGeneratorInterface $router = null
     )
     {
+        $this->app = $app;
         $this->em = $em;
         $this->logger = $logger;
         $this->serializer = $serializer;
         $this->pluginHelper = $pluginHelper;
         $this->router = $router;
+    }
+
+    protected function shouldDisplaySensitiveData()
+    {
+        return $this->app->getContainer()->getParameter('packages.api.sensitive_data_strategy') === 'show';
+    }
+
+    protected function shouldHideSensitiveData()
+    {
+        return $this->app->getContainer()->getParameter('packages.api.sensitive_data_strategy') === 'hide';
+    }
+
+    protected function shouldReplaceSensitiveData()
+    {
+        return $this->app->getContainer()->getParameter('packages.api.sensitive_data_strategy') === 'placeholder';
+    }
+
+    protected function handleSensitiveDataOutput(array $data)
+    {
+        if ($this->shouldDisplaySensitiveData()) {
+            return $data;
+        }
+
+        $out = [];
+        foreach ($data as $key => $value) {
+            if (in_array($key, $this->getSensitiveDataKeys())) {
+                if ($this->shouldReplaceSensitiveData()) {
+                    $out[$key] = self::SENSITIVE_VALUE;
+                }
+                continue;
+            }
+            $out[$key] = $value;
+        }
+        return $out;
+    }
+
+    protected function handleSensitiveDataInput(array $data)
+    {
+        return array_filter($data, function($value) {
+            return $value !== self::SENSITIVE_VALUE;
+        });
     }
 
     /**

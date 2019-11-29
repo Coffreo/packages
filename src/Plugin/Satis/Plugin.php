@@ -52,6 +52,7 @@ class Plugin implements PluginInterface, RouterPluginInterface, CompilerAwarePlu
             ->addMethodCall('setContainer', [new Reference('service_container')]);
 
         $container->register('packages.plugin.satis.api_controller', 'Terramar\Packages\Plugin\Satis\ApiController')
+            ->addArgument(new Reference('app'))
             ->addArgument(new Reference('doctrine.orm.entity_manager'))
             ->addArgument(new Reference('logger.default'));
 

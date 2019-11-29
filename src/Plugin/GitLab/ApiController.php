@@ -17,6 +17,13 @@ use Terramar\Packages\Controller\Api\AbstractApiController;
 
 class ApiController extends AbstractApiController
 {
+    function getSensitiveDataKeys()
+    {
+        return [
+            'gitlab_token'
+        ];
+    }
+
     public function getAction(Application $app, Request $request, $id)
     {
         $config = $this->getRemoteConfiguration($id);
@@ -24,11 +31,11 @@ class ApiController extends AbstractApiController
             return new JsonResponse();
         }
 
-        return new JsonResponse([
+        return new JsonResponse($this->handleSensitiveDataOutput([
             'gitlab_allowed_paths' => $config->getAllowedPaths(),
             'gitlab_token' => $config->getToken(),
             'gitlab_url' => $config->getUrl()
-        ]);
+        ]));
     }
 
     public function updateAction(Application $app, Request $request, $id)
@@ -39,9 +46,18 @@ class ApiController extends AbstractApiController
             return new Response();
         }
 
-        $config->setToken($request->get('gitlab_token'));
-        $config->setUrl($request->get('gitlab_url'));
-        $config->setAllowedPaths($request->get('gitlab_allowedPaths'));
+        $postData = $this->handleSensitiveDataInput($request->request->all());
+
+        if (array_key_exists('gitlab_token', $postData)) {
+            $config->setToken($postData['gitlab_token']);
+        }
+        if (array_key_exists('gitlab_url', $postData)) {
+            $config->setUrl($postData['gitlab_url']);
+        }
+        if (array_key_exists('gitlab_allowedPaths', $postData)) {
+            $config->setAllowedPaths($postData['gitlab_allowedPaths']);
+        }
+
         $config->setEnabled($config->getRemote()->isEnabled());
 
         $this->em->persist($config);

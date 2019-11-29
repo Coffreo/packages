@@ -23,6 +23,11 @@ use Terramar\Packages\Controller\PackageController as BasePackageController;
 
 class PackageController extends AbstractApiController
 {
+    function getSensitiveDataKeys()
+    {
+        return [];
+    }
+
     /**
      * Availables query parameters:
      *   * enabled         boolean [true] whether to retrieve only enabled package,
