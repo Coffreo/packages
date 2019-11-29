@@ -22,12 +22,22 @@ class ApiConfiguration implements ConfigurationInterface
     public function getConfigTreeBuilder()
     {
         $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('api');
+        $rootNode = $treeBuilder->root('api')
+            ->canBeEnabled()
+            ->validate()
+                ->ifTrue(function($config) {
+                    return $config['enabled'] && !$config['token'];
+                })
+                ->then(function($config) {
+                    trigger_error('Disabling api (no token supplied)', E_USER_WARNING);
+                    return array_merge($config, ['enabled' => false]);
+                })
+            ->end();
 
         $rootNode
             ->children()
                 ->booleanNode('enabled')->defaultFalse()->end()
-                ->scalarNode('token')->isRequired()->end()
+                ->scalarNode('token')->defaultFalse()->end()
             ->end();
 
         return $treeBuilder;
