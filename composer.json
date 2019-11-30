@@ -18,7 +18,7 @@
     "symfony/debug": "~2.7",
     "symfony/console": "~2.7",
     "symfony/process": "~2.7",
-    "symfony/property-access": "^4.3",
+    "symfony/property-access": "^2.7",
     "symfony/serializer": "^2.8",
     "symfony/yaml": "~2.7",
     "composer/satis": "^1.0",
