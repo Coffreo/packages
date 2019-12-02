@@ -36,9 +36,9 @@ class FrontendController
      * Constructor
      *
      * @param array $config
-     * @param AuthenticatorInterface $authenticator
+     * @param callable $authenticator
      */
-    public function __construct(array $config, AuthenticatorInterface $authenticator)
+    public function __construct(array $config, callable $authenticator)
     {
         $this->secure = isset($config['secure_satis']) ? (bool)$config['secure_satis'] : true;
         $this->outputDir = $config['output_dir'];
@@ -61,7 +61,7 @@ class FrontendController
             $username = $request->getUser();
             $password = $request->getPassword();
             if (
-                $this->authenticator->authenticate(new Request(['username' => $username, 'password' => $password])) !== true
+                $this->authenticator(new Request(['username' => $username, 'password' => $password])) !== true
             ) {
                 return new Response('', 401, ['WWW-Authenticate' => 'Basic realm="'.$this->basePath.'"']);
             }
@@ -93,7 +93,7 @@ class FrontendController
             $username = $request->getUser();
             $password = $request->getPassword();
             if (
-                $this->authenticator->authenticate(new Request(['username' => $username, 'password' => $password])) !== true
+                $this->authenticator(new Request(['username' => $username, 'password' => $password])) !== true
             ) {
                 return new Response('', 401, ['WWW-Authenticate' => 'Basic realm="'.$this->basePath.'"']);
             }
