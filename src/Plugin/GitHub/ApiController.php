@@ -45,13 +45,13 @@ class ApiController extends AbstractApiController
             return new Response();
         }
 
-        $postData = $this->handleSensitiveDataInput($request->request->all());
+        $data = $this->handleSensitiveDataInput($request->query->all());
 
-        if (array_key_exists('github_token', $postData)) {
-            $config->setToken($postData['github_token']);
+        if (array_key_exists('github_token', $data)) {
+            $config->setToken($data['github_token']);
         }
-        if (array_key_exists('github_username', $postData)) {
-            $config->setToken($postData['github_username']);
+        if (array_key_exists('github_username', $data)) {
+            $config->setToken($data['github_username']);
         }
         $config->setEnabled($config->getRemote()->isEnabled());
 

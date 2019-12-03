@@ -46,7 +46,7 @@ class ApiController extends AbstractApiController
             return new Response();
         }
 
-        $data = $this->handleSensitiveDataInput($request->request->all());
+        $data = $this->handleSensitiveDataInput($request->query->all());
 
         if (array_key_exists('bitbucket_token', $data)) {
             $config->setToken($data['bitbucket_token']);

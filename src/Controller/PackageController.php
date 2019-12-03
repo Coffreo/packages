@@ -80,11 +80,24 @@ class PackageController
         }
 
         $enabledBefore = $package->isEnabled();
-        $enabledAfter = (bool)$request->get('enabled', false);
+        $enabledAfter = $enabledBefore;
 
-        $package->setName($request->request->get('name'));
-        $package->setDescription($request->request->get('description'));
-        $package->setEnabled($enabledAfter);
+        if ($request->request->has('enabled')) {
+            $enabledAfter = (bool) $request->request->get('enabled');
+            $package->setEnabled($enabledAfter);
+        }
+
+        if ($request->request->has('name')) {
+            $package->setName($request->request->get('name'));
+        }
+
+        if ($request->request->has('name')) {
+            $package->setDescription($request->request->get('description'));
+        }
+
+        if ($request->request->has('hook_external_id')) {
+            $package->setHookExternalId($request->request->get('hook_external_id'));
+        }
 
         if ($enabledBefore !== $enabledAfter) {
             $eventName = $enabledAfter ? Events::PACKAGE_ENABLE : Events::PACKAGE_DISABLE;

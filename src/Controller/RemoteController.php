@@ -105,12 +105,16 @@ class RemoteController
             throw new NotFoundHttpException('Unable to locate Remote');
         }
 
-        $remote->setName($request->get('name'));
+        if ($request->request->has('name')) {
+            $remote->setName($request->request->get('name'));
+        }
 
         $enabledBefore = $remote->isEnabled();
-        $enabledAfter = (bool)$request->get('enabled', false);
-
-        $remote->setEnabled($enabledAfter);
+        $enabledAfter = $enabledBefore;
+        if ($request->request->has('name')) {
+            $enabledAfter = (bool) $request->request->get('enabled', false);
+            $remote->setEnabled($enabledAfter);
+        }
 
         if ($enabledBefore !== $enabledAfter) {
             $eventName = $enabledAfter ? Events::REMOTE_ENABLE : Events::REMOTE_DISABLE;
@@ -126,7 +130,7 @@ class RemoteController
         $action = $this->context === self::CONTEXT_INTERFACE
             ? Actions::REMOTE_UPDATE
             : Actions::REMOTE_API_UPDATE;
-        $helper->invokeAction($request, Actions::REMOTE_UPDATE, array_merge($request->request->all(), [
+        $helper->invokeAction($request, $action, array_merge($request->request->all(), [
             'id' => $id,
         ]));
 

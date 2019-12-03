@@ -46,16 +46,16 @@ class ApiController extends AbstractApiController
             return new Response();
         }
 
-        $postData = $this->handleSensitiveDataInput($request->request->all());
+        $data = $this->handleSensitiveDataInput($request->query->all());
 
-        if (array_key_exists('gitlab_token', $postData)) {
-            $config->setToken($postData['gitlab_token']);
+        if (array_key_exists('gitlab_token', $data)) {
+            $config->setToken($data['gitlab_token']);
         }
-        if (array_key_exists('gitlab_url', $postData)) {
-            $config->setUrl($postData['gitlab_url']);
+        if (array_key_exists('gitlab_url', $data)) {
+            $config->setUrl($data['gitlab_url']);
         }
-        if (array_key_exists('gitlab_allowedPaths', $postData)) {
-            $config->setAllowedPaths($postData['gitlab_allowedPaths']);
+        if (array_key_exists('gitlab_allowedPaths', $data)) {
+            $config->setAllowedPaths($data['gitlab_allowedPaths']);
         }
 
         $config->setEnabled($config->getRemote()->isEnabled());

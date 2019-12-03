@@ -81,27 +81,36 @@ class PackageController extends AbstractApiController
 
     public function packageAction(Application $app, Request $request, $id)
     {
-        $package = $this->getPackage($id);
-        $data = $this->extendWithPluginInfos($request, $package);
+        try {
+            $package = $this->getPackage($id);
+            $data = $this->extendWithPluginInfos($request, $package);
 
-        return new JsonResponse($data);
+            return new JsonResponse($data);
+
+        } catch (NotFoundHttpException $exception) {
+            $this->logger->warning('Api\PackageController : Unable to find project', ['FqnOrId' => $id]);
+            return new JsonResponse([
+                'error' => true,
+                'message' => $exception->getMessage()
+            ], 404);
+        }
     }
 
     public function updateAction(Application $app, Request $request, $id)
     {
-        $package = $this->getPackage($id);
-        $data = $this->extendWithPluginInfos($request, $package);
-
-        $packageController = new BasePackageController(BasePackageController::CONTEXT_API);
-
-        // merge package data to avoid losing data
-        // request data to apply update
-        // and package id to prevent id update
-        $parameters = array_merge($data, $request->request->all(), ['id' => $data['id']]);
-        $request->request->replace($parameters);
-
         try {
+            $package = $this->getPackage($id);
+            $packageController = new BasePackageController(BasePackageController::CONTEXT_API);
             $packageController->updateAction($app, $request, $package->getId());
+
+            return $this->packageAction($app, $request, $package->getId());
+
+        } catch (NotFoundHttpException $exception) {
+            $this->logger->warning('Api\PackageController : Unable to find project', ['FqnOrId' => $id]);
+            return new JsonResponse([
+                'error' => true,
+                'message' => $exception->getMessage()
+            ], 404);
         } catch (\Exception $exception) {
             $this->logger->error('An error occured', ['exception' => $exception]);
             return new JsonResponse([
@@ -109,8 +118,6 @@ class PackageController extends AbstractApiController
                 'message' => $exception->getMessage()
             ], 500);
         }
-
-        return $this->packageAction($app, $request, $package->getId());
     }
 
     /**

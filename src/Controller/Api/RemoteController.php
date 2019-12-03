@@ -78,27 +78,36 @@ class RemoteController extends AbstractApiController
 
     public function remoteAction(Application $app, Request $request, $id)
     {
-        $remote = $this->getRemote($id);
-        $data = $this->extendWithPluginInfos($request, $remote);
+        try {
+            $remote = $this->getRemote($id);
+            $data = $this->extendWithPluginInfos($request, $remote);
 
-        return new JsonResponse($data);
+            return new JsonResponse($data);
+
+        } catch (NotFoundHttpException $exception) {
+            $this->logger->warning('Api\RemoteController : Unable to find remote', ['nameOrId' => $id]);
+            return new JsonResponse([
+                'error' => true,
+                'message' => $exception->getMessage()
+            ], 404);
+        }
     }
 
     public function updateAction(Application $app, Request $request, $id)
     {
-        $remote = $this->getRemote($id);
-        $data = $this->extendWithPluginInfos($request, $remote);
-
-        $remoteController = new BaseRemoteController(BaseRemoteController::CONTEXT_API);
-
-        // merge remote data to avoid losing data
-        // request data to apply update
-        // and remote id to prevent id update
-        $parameters = array_merge($data, $request->request->all(), ['id' => $data['id']]);
-        $request->request->replace($parameters);
-
         try {
+            $remote = $this->getRemote($id);
+            $remoteController = new BaseRemoteController(BaseRemoteController::CONTEXT_API);
             $remoteController->updateAction($app, $request, $remote->getId());
+
+            return $this->remoteAction($app, $request, $remote->getId());
+
+        } catch (NotFoundHttpException $exception) {
+            $this->logger->warning('Api\RemoteController : Unable to find remote', ['nameOrId' => $id]);
+            return new JsonResponse([
+                'error' => true,
+                'message' => $exception->getMessage()
+            ], 404);
         } catch (\Exception $exception) {
             $this->logger->error('An error occured', ['exception' => $exception]);
             return new JsonResponse([
@@ -106,8 +115,6 @@ class RemoteController extends AbstractApiController
                 'message' => $exception->getMessage()
             ], 500);
         }
-
-        return $this->remoteAction($app, $request, $remote->getId());
     }
 
     /**
@@ -119,7 +126,7 @@ class RemoteController extends AbstractApiController
     }
 
     /**
-     * @param int|string $id
+     * @param int|string $idOrName
      *
      * @return Remote|null
      */

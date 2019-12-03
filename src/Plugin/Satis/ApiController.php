@@ -34,9 +34,9 @@ class ApiController extends AbstractApiController
     public function updateAction(Application $app, Request $request, $id)
     {
         $config = $this->getConfiguration($id);
-        $postData = $this->handleSensitiveDataInput($request->request->all());
-        if (array_key_exists('satis_enabled', $postData)) {
-            $config->setEnabled($postData['satis_enabled'] ? true : false);
+        $data = $this->handleSensitiveDataInput($request->query->all());
+        if (array_key_exists('satis_enabled', $data)) {
+            $config->setEnabled($data['satis_enabled'] ? true : false);
             $this->em->persist($config);
         }
 
