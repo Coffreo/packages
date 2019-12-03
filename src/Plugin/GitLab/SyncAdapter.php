@@ -181,7 +181,6 @@ class SyncAdapter implements SyncAdapterInterface
                 }
             } catch (\Exception $e) {
                 $this->logger->error('GitLab/SyncAdapter::disableHook - An error occured while disabling hook', ['exception' => $e]);
-                $package->setHookExternalId(null);
                 $config->setEnabled(false);
 
                 return false;
