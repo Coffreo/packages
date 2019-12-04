@@ -141,7 +141,7 @@ class SyncAdapter implements SyncAdapterInterface
                     'note_events' => false,
                     'job_events' => false,
                     'pipeline_events' => false,
-                    'wiki_page_event' => false,
+                    'wiki_page_events' => false,
                 ]
             );
             $package->setHookExternalId($hook->id);
@@ -174,11 +174,23 @@ class SyncAdapter implements SyncAdapterInterface
                 $project = Project::fromArray($client, (array)$client->api('projects')->show($package->getExternalId()));
                 $project->removeHook($package->getHookExternalId());
                 $package->setHookExternalId(null);
+                $this->logger->info('GitLab/SyncAdapter::disableHook - Hook disabled');
+
+                return true;
+
             } catch (RuntimeException $e) {
                 // it's ok if it's already gone
-                if ($e->getCode() != 404) {
-                    throw $e;
+                if ($e->getCode() === 404) {
+                    $this->logger->info('GitLab/SyncAdapter::disableHook - Hook doesn\'t exist. Considering success.');
+                    $package->setHookExternalId(null);
+
+                    return true;
                 }
+                $this->logger->error('GitLab/SyncAdapter::disableHook - An error occured while disabling hook', ['exception' => $e]);
+                $config->setEnabled(false);
+
+                return false;
+
             } catch (\Exception $e) {
                 $this->logger->error('GitLab/SyncAdapter::disableHook - An error occured while disabling hook', ['exception' => $e]);
                 $config->setEnabled(false);
@@ -187,7 +199,6 @@ class SyncAdapter implements SyncAdapterInterface
             }
         }
 
-        $this->logger->info('GitLab/SyncAdapter::disableHook - Hook disabled');
         return true;
     }
 
