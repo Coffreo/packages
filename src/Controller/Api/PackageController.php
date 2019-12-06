@@ -116,7 +116,7 @@ class PackageController extends AbstractApiController
             return new JsonResponse([
                 'error' => true,
                 'message' => $exception->getMessage()
-            ], 500);
+            ], $exception->getCode() ?: 500);
         }
     }
 
