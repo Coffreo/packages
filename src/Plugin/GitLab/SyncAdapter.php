@@ -162,37 +162,67 @@ class SyncAdapter implements SyncAdapterInterface
      * @param Package $package
      *
      * @return bool
+     * @throws \Exception
      */
     public function disableHook(Package $package)
     {
         $config = $this->getConfig($package);
 
         if ($package->getHookExternalId()) {
-            $this->logger->info('GitLab/SyncAdapter::disableHook - Disabling hook...');
+            $logInfos = [
+                'package' => $package->getFqn(),
+                'remote' => $package->getRemote()->getName()
+            ];
+
             try {
+                // get project on gitlab
                 $client = $this->getClient($package->getRemote());
+                $this->logger->info('GitLab/SyncAdapter::disableHook - Disabling hook...', $logInfos);
                 $project = Project::fromArray($client, (array)$client->api('projects')->show($package->getExternalId()));
+            } catch (\Exception $e) {
+                if (404 === $e->getCode()) {
+                    $this->logger->warning(
+                        'GitLab/SyncAdapter::disableHook - Unable to find project. '.
+                        'You should double check package name and ensure configured GitLab user has access right to this repository',
+                        $logInfos
+                    );
+                } else {
+                    $this->logger->warning(
+                        'GitLab/SyncAdapter::disableHook - An error occured while getting project on Gitlab',
+                        array_merge(['exception' => $e], $logInfos)
+                    );
+                }
+
+                return false;
+            }
+
+            try {
+                // remove hook
                 $project->removeHook($package->getHookExternalId());
                 $package->setHookExternalId(null);
-                $this->logger->info('GitLab/SyncAdapter::disableHook - Hook disabled');
+                $this->logger->info('GitLab/SyncAdapter::disableHook - Hook disabled', $logInfos);
 
                 return true;
 
             } catch (RuntimeException $e) {
                 // it's ok if it's already gone
                 if ($e->getCode() === 404) {
-                    $this->logger->info('GitLab/SyncAdapter::disableHook - Hook doesn\'t exist. Considering success.');
+                    $this->logger->info('GitLab/SyncAdapter::disableHook - Hook doesn\'t exist. Considering success.', $logInfos);
                     $package->setHookExternalId(null);
 
                     return true;
                 }
-                $this->logger->error('GitLab/SyncAdapter::disableHook - An error occured while disabling hook', ['exception' => $e]);
+                $this->logger->error('GitLab/SyncAdapter::disableHook - An error occured while disabling hook',
+                    array_merge(['exception' => $e], $logInfos)
+                );
                 $config->setEnabled(false);
 
                 return false;
 
             } catch (\Exception $e) {
-                $this->logger->error('GitLab/SyncAdapter::disableHook - An error occured while disabling hook', ['exception' => $e]);
+                $this->logger->error('GitLab/SyncAdapter::disableHook - An error occured while disabling hook',
+                    array_merge(['exception' => $e], $logInfos)
+                );
                 $config->setEnabled(false);
 
                 return false;
