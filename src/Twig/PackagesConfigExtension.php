@@ -45,6 +45,32 @@ class PackagesConfigExtension extends \Twig_Extension
     }
 
     /**
+     * @param string $sourceUrl
+     *
+     * @return string
+     */
+    public function guessRepositoryWebUrl($sourceUrl)
+    {
+        $sourceData = parse_url($sourceUrl);
+
+        if (!$sourceData) {
+            return $sourceUrl;
+        }
+
+        $scheme = substr($sourceData['scheme'], 0, 4) === 'http' ? $sourceData['scheme'] : 'https';
+        $path = preg_replace('/\.git$/', '', $sourceData['path']);
+
+        return sprintf("%s://%s%s", $scheme, $sourceData['host'], $path);
+    }
+
+    public function getFunctions()
+    {
+        return [
+            new \Twig_SimpleFunction('guess_repository_weburl', [$this, 'guessRepositoryWebUrl']),
+        ];
+    }
+
+    /**
      * @return string
      */
     public function getName()

@@ -17,7 +17,7 @@
                     <a href="mailto:{{ author.email }}" style="margin:5px;"><img width="48" height="48" title="{{ author.name }}" src="//www.gravatar.com/avatar/{{ md5(author.email) }}?s=48&amp;d=identicon" srcset="//www.gravatar.com/avatar/{{ md5(author.email) }}?s=96&amp;d=identicon 2x"></a>
                 {% endfor %}
             </p>
-            {% set url = 'https://' ~ package.sourceUrl|replace({ '.git': '', 'git@': '', ':': '/' }) %}
+            {% set url = guess_repository_weburl(package.sourceUrl) %}
             <div>
                 <a href="{{ url }}">
                     {{ url }}
